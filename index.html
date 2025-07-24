@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ontario Parks - Dropdown Booking</title>
+    <style>
+        :root {
+            --primary: #2e5635;
+            --primary-dark: #204026;
+            --accent: #a3c76d;
+            --bg: #f5f7f2;
+            --panel: #fff;
+            --border: #dbe5d1;
+            --text: #222;
+            --muted: #6b7a6a;
+            --success: #3b7a57;
+            --radius: 14px;
+            --shadow: 0 2px 16px rgba(46, 86, 53, 0.08);
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            margin: 2.5rem auto;
+            background: var(--panel);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem 1rem 2rem 1rem;
+            border: 1.5px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .dropdown-label {
+            font-size: 0.98rem;
+            color: var(--muted);
+            margin-bottom: 0.1rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
+        .custom-dropdown {
+            position: relative;
+            margin-bottom: 0.1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .custom-dropdown .dropdown-selected {
+            width: 100%;
+            min-height: 42px;
+            padding: 0.5rem 2rem 0.5rem 0.9rem;
+            border-radius: 7px;
+            border: 1.2px solid var(--border);
+            background: #f5f7f2;
+            color: var(--text);
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(46, 86, 53, 0.04);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: border 0.2s, box-shadow 0.2s;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .custom-dropdown .dropdown-selected:after {
+            content: '\25BC';
+            color: var(--muted);
+            margin-left: 0.7rem;
+            font-size: 1rem;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .custom-dropdown.open .dropdown-selected:after {
+            content: '\25B2';
+            transform: rotate(180deg);
+        }
+
+        .custom-dropdown .dropdown-selected:hover,
+        .custom-dropdown .dropdown-selected:focus {
+            border: 1.2px solid var(--primary);
+            box-shadow: 0 2px 8px rgba(46, 86, 53, 0.10);
+        }
+
+        .custom-dropdown .dropdown-list {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            background: #fff;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 12px rgba(46, 86, 53, 0.13);
+            z-index: 10;
+            padding: 0.3rem 0;
+            display: none;
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1.2px solid var(--border);
+            font-size: 0.98rem;
+            box-sizing: border-box;
+        }
+
+        .custom-dropdown.open .dropdown-list {
+            display: block;
+            animation: fadeIn 0.18s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .custom-dropdown .dropdown-list-item {
+            padding: 0.6rem 1rem;
+            color: var(--text);
+            font-size: 0.98rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: background 0.18s, color 0.18s;
+            border: none;
+            box-sizing: border-box;
+        }
+
+        .custom-dropdown .dropdown-list-item:hover,
+        .custom-dropdown .dropdown-list-item:focus {
+            background: #eaf3e2;
+            color: var(--primary-dark);
+            outline: none;
+        }
+
+        .custom-dropdown .dropdown-list-item .icon {
+            font-size: 1em;
+            opacity: 0.8;
+        }
+
+        .booking-summary {
+            margin-top: 0.7rem;
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 0.8rem 1rem 0.8rem 2.5rem;
+            color: var(--success);
+            font-size: 1.02rem;
+            font-weight: 600;
+            border-left: 5px solid var(--success);
+            box-shadow: 0 1px 4px rgba(46, 86, 53, 0.04);
+            position: relative;
+            min-height: 2.1rem;
+        }
+
+        .booking-summary:before {
+            content: '\2714';
+            position: absolute;
+            left: 0.8rem;
+            top: 0.8rem;
+            font-size: 1.1rem;
+            color: var(--success);
+        }
+
+        .booking-warning {
+            margin-top: 0.3rem;
+            background: #fff3cd;
+            border-left: 5px solid #e0a800;
+            color: #856404;
+            border-radius: 8px;
+            padding: 0.7rem 1rem 0.7rem 2.2rem;
+            font-size: 0.98rem;
+            font-weight: 500;
+            box-shadow: 0 1px 4px rgba(46, 86, 53, 0.04);
+            position: relative;
+            min-height: 1.8rem;
+        }
+
+        .booking-warning:before {
+            content: '\26A0';
+            position: absolute;
+            left: 0.7rem;
+            top: 0.6rem;
+            font-size: 1rem;
+            color: #e0a800;
+        }
+
+        .book-btn {
+            width: 100%;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 0.85rem 0;
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-top: 0.8rem;
+            margin-bottom: 0.3rem;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(46, 86, 53, 0.08);
+            transition: background 0.18s, box-shadow 0.18s;
+            letter-spacing: 0.01em;
+        }
+
+        .book-btn:hover,
+        .book-btn:focus {
+            background: var(--primary-dark);
+            outline: none;
+            box-shadow: 0 2px 8px rgba(46, 86, 53, 0.13);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                max-width: 98vw;
+                padding: 1rem 0.2rem 1.2rem 0.2rem;
+            }
+
+            h1 {
+                font-size: 1.05rem;
+            }
+
+            .custom-dropdown .dropdown-selected {
+                font-size: 0.97rem;
+                min-height: 38px;
+                padding: 0.5rem 1.5rem 0.5rem 0.7rem;
+            }
+
+            .custom-dropdown .dropdown-list {
+                font-size: 0.97rem;
+                max-height: 120px;
+            }
+
+            .custom-dropdown .dropdown-list-item {
+                padding: 0.5rem 0.7rem;
+            }
+
+            .book-btn {
+                font-size: 0.97rem;
+                padding: 0.7rem 0;
+            }
+
+            .booking-summary,
+            .booking-warning {
+                font-size: 0.97rem;
+                padding-left: 1.7rem;
+            }
+
+            .booking-summary:before,
+            .booking-warning:before {
+                left: 0.4rem;
+                top: 0.5rem;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Ontario Parks Booking</h1>
+        <div class="dropdown-label">Activity</div>
+        <div class="custom-dropdown" id="activity-dropdown">
+            <div class="dropdown-selected">Select Activity</div>
+            <div class="dropdown-list">
+                <div class="dropdown-list-item"><span class="icon">&#x1F3D5;</span>Camping</div>
+                <div class="dropdown-list-item"><span class="icon">&#x2600;</span>Day Use</div>
+                <div class="dropdown-list-item"><span class="icon">&#x1F6B6;</span>Backcountry</div>
+                <div class="dropdown-list-item"><span class="icon">&#x1F3E0;</span>Roofed Accommodations</div>
+                <div class="dropdown-list-item"><span class="icon">&#x1F465;</span>Group Campsite</div>
+            </div>
+        </div>
+        <div class="dropdown-label">Park</div>
+        <div class="custom-dropdown" id="parks-dropdown">
+            <div class="dropdown-selected">Select Park</div>
+            <div class="dropdown-list" style="max-height: 180px;">
+                <div class="dropdown-list-item">Aaron</div>
+                <div class="dropdown-list-item">Algonquin</div>
+                <div class="dropdown-list-item">Arrowhead</div>
+                <div class="dropdown-list-item">Awenda</div>
+                <div class="dropdown-list-item">Balsam Lake</div>
+                <div class="dropdown-list-item">Bass Lake</div>
+                <div class="dropdown-list-item">Batchawana Bay</div>
+                <div class="dropdown-list-item">Blue Lake</div>
+                <div class="dropdown-list-item">Bon Echo</div>
+                <div class="dropdown-list-item">Bronte Creek</div>
+                <div class="dropdown-list-item">Charleston Lake</div>
+                <div class="dropdown-list-item">Craigleith</div>
+                <div class="dropdown-list-item">Darlington</div>
+                <div class="dropdown-list-item">Driftwood</div>
+                <div class="dropdown-list-item">Earl Rowe</div>
+                <div class="dropdown-list-item">Emily</div>
+                <div class="dropdown-list-item">Fairbank</div>
+                <div class="dropdown-list-item">Ferris</div>
+                <div class="dropdown-list-item">Fitzroy</div>
+                <div class="dropdown-list-item">French River</div>
+                <div class="dropdown-list-item">Frontenac</div>
+                <div class="dropdown-list-item">Grundy Lake</div>
+                <div class="dropdown-list-item">Inverhuron</div>
+                <div class="dropdown-list-item">Ivanhoe Lake</div>
+                <div class="dropdown-list-item">Kakabeka Falls</div>
+                <div class="dropdown-list-item">Killarney</div>
+                <div class="dropdown-list-item">Killbear</div>
+                <div class="dropdown-list-item">Komoka</div>
+                <div class="dropdown-list-item">Lake Superior</div>
+                <div class="dropdown-list-item">Long Point</div>
+                <div class="dropdown-list-item">MacGregor Point</div>
+                <div class="dropdown-list-item">Marten River</div>
+                <div class="dropdown-list-item">McRae Point</div>
+                <div class="dropdown-list-item">Mikisew</div>
+                <div class="dropdown-list-item">Murphys Point</div>
+                <div class="dropdown-list-item">Neys</div>
+                <div class="dropdown-list-item">Oastler Lake</div>
+                <div class="dropdown-list-item">Ojibway</div>
+                <div class="dropdown-list-item">Pancake Bay</div>
+                <div class="dropdown-list-item">Pinery</div>
+                <div class="dropdown-list-item">Point Farms</div>
+                <div class="dropdown-list-item">Presqu'ile</div>
+                <div class="dropdown-list-item">Quetico</div>
+                <div class="dropdown-list-item">Restoule</div>
+                <div class="dropdown-list-item">Rideau River</div>
+                <div class="dropdown-list-item">Rock Point</div>
+                <div class="dropdown-list-item">Rondeau</div>
+                <div class="dropdown-list-item">Samuel de Champlain</div>
+                <div class="dropdown-list-item">Sandbanks</div>
+                <div class="dropdown-list-item">Sauble Falls</div>
+                <div class="dropdown-list-item">Selkirk</div>
+                <div class="dropdown-list-item">Sharbot Lake</div>
+                <div class="dropdown-list-item">Sibbald Point</div>
+                <div class="dropdown-list-item">Silent Lake</div>
+                <div class="dropdown-list-item">Six Mile Lake</div>
+                <div class="dropdown-list-item">Sleeping Giant</div>
+                <div class="dropdown-list-item">Sturgeon Bay</div>
+                <div class="dropdown-list-item">The Massasauga</div>
+                <div class="dropdown-list-item">Turkey Point</div>
+                <div class="dropdown-list-item">Voyageur</div>
+                <div class="dropdown-list-item">Wasaga Beach</div>
+                <div class="dropdown-list-item">Wheatley</div>
+                <div class="dropdown-list-item">White Lake</div>
+                <div class="dropdown-list-item">Windy Lake</div>
+                <div class="dropdown-list-item">Woodland Caribou</div>
+            </div>
+        </div>
+        <div class="dropdown-label">Equipment</div>
+        <div class="custom-dropdown" id="equipments-dropdown">
+            <div class="dropdown-selected">Select Equipment</div>
+            <div class="dropdown-list">
+                <div class="dropdown-list-item">Single Tent</div>
+                <div class="dropdown-list-item">2 Tents</div>
+                <div class="dropdown-list-item">3 Tents</div>
+                <div class="dropdown-list-item">Trailer or RV up to 18ft (5.5m)</div>
+                <div class="dropdown-list-item">Trailer or RV up to 25ft (7.6m)</div>
+            </div>
+        </div>
+        <button id="book-btn" class="book-btn" type="button">Book</button>
+        <div id="booking-summary" class="booking-summary" style="display:none;"></div>
+        <div id="booking-warning" class="booking-warning" style="display:none;"></div>
+    </div>
+    <script>
+        // Activity to Parks and Equipment mapping
+        const activityData = {
+            'Camping': {
+                parks: [
+                    'Algonquin', 'Arrowhead', 'Awenda', 'Balsam Lake', 'Bon Echo', 'Pinery', 'Sandbanks', 'Restoule', 'Wasaga Beach', 'Killarney', 'Killbear', 'MacGregor Point', 'Marten River', 'Murphys Point', 'Quetico'
+                ],
+                equipment: [
+                    'Single Tent', '2 Tents', '3 Tents', 'Trailer or RV up to 18ft (5.5m)', 'Trailer or RV up to 25ft (7.6m)'
+                ]
+            },
+            'Day Use': {
+                parks: [
+                    'Arrowhead', 'Awenda', 'Balsam Lake', 'Bon Echo', 'Pinery', 'Sandbanks', 'Wasaga Beach', 'Restoule', 'Algonquin', 'Killarney', 'Killbear', 'MacGregor Point'
+                ],
+                equipment: [
+                    'Picnic Table', 'Day Shelter'
+                ]
+            },
+            'Backcountry': {
+                parks: [
+                    'Algonquin', 'Killarney', 'Quetico', 'French River', 'Woodland Caribou', 'Lady Evelyn-Smoothwater'
+                ],
+                equipment: [
+                    'Single Tent', '2 Tents', 'Canoe'
+                ]
+            },
+            'Roofed Accommodations': {
+                parks: [
+                    'Algonquin', 'Arrowhead', 'Awenda', 'Bon Echo', 'Pinery'
+                ],
+                equipment: [
+                    'Cabin', 'Yurt', 'Cottage'
+                ]
+            },
+            'Group Campsite': {
+                parks: [
+                    'Algonquin', 'Arrowhead', 'Awenda', 'Balsam Lake', 'Bon Echo'
+                ],
+                equipment: [
+                    'Group Tent', 'Group Shelter'
+                ]
+            }
+        };
+        const activityIcons = {
+            'Camping': '&#x1F3D5;',
+            'Day Use': '&#x2600;',
+            'Backcountry': '&#x1F6B6;',
+            'Roofed Accommodations': '&#x1F3E0;',
+            'Group Campsite': '&#x1F465;'
+        };
+        // Store all options for parks and equipment
+        const allParks = Array.from(document.querySelectorAll('#parks-dropdown .dropdown-list-item')).map(e => e.textContent.trim());
+        const allEquipment = Array.from(document.querySelectorAll('#equipments-dropdown .dropdown-list-item')).map(e => e.textContent.trim());
+        // State
+        let selectedActivity = null;
+        let selectedPark = null;
+        let selectedEquipment = null;
+        const bookingSummary = document.getElementById('booking-summary');
+        const bookingWarning = document.getElementById('booking-warning');
+        const bookBtn = document.getElementById('book-btn');
+        // Dropdown logic
+        function setupDropdown(dropdownId, onChange, withIcons = false) {
+            const dropdown = document.getElementById(dropdownId);
+            const selected = dropdown.querySelector('.dropdown-selected');
+            const list = dropdown.querySelector('.dropdown-list');
+            function setHandler() {
+                const items = list.querySelectorAll('.dropdown-list-item');
+                items.forEach(item => {
+                    item.onclick = function (e) {
+                        if (withIcons && activityIcons[item.textContent.trim()]) {
+                            selected.innerHTML = `<span class=\"icon\">${activityIcons[item.textContent.trim()]}<\/span>${item.textContent.trim()}`;
+                        } else {
+                            selected.textContent = item.textContent.trim();
+                        }
+                        dropdown.classList.remove('open');
+                        onChange(item.textContent.trim());
+                    };
+                });
+            }
+            selected.onclick = function (e) {
+                e.stopPropagation();
+                document.querySelectorAll('.custom-dropdown').forEach(d => {
+                    if (d !== dropdown) d.classList.remove('open');
+                });
+                dropdown.classList.toggle('open');
+            };
+            setHandler();
+            document.addEventListener('click', function (e) {
+                dropdown.classList.remove('open');
+            });
+            return setHandler;
+        }
+        // Setup dropdowns
+        const parksDropdown = document.getElementById('parks-dropdown');
+        const parksSelected = parksDropdown.querySelector('.dropdown-selected');
+        const parksList = parksDropdown.querySelector('.dropdown-list');
+        const equipmentDropdown = document.getElementById('equipments-dropdown');
+        const equipmentSelected = equipmentDropdown.querySelector('.dropdown-selected');
+        const equipmentList = equipmentDropdown.querySelector('.dropdown-list');
+        function updateDropdownList(listElem, options) {
+            listElem.innerHTML = '';
+            options.forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'dropdown-list-item';
+                div.textContent = opt;
+                listElem.appendChild(div);
+            });
+        }
+        function reattachDropdownHandlers(dropdownId, onChange) {
+            const dropdown = document.getElementById(dropdownId);
+            const selected = dropdown.querySelector('.dropdown-selected');
+            const list = dropdown.querySelector('.dropdown-list');
+            const items = list.querySelectorAll('.dropdown-list-item');
+            items.forEach(item => {
+                item.onclick = function (e) {
+                    selected.textContent = item.textContent.trim();
+                    dropdown.classList.remove('open');
+                    onChange(item.textContent.trim());
+                };
+            });
+        }
+        setupDropdown('activity-dropdown', val => {
+            selectedActivity = val;
+            // Filter parks and equipment
+            const parks = activityData[val] ? activityData[val].parks : allParks;
+            const equipment = activityData[val] ? activityData[val].equipment : allEquipment;
+            updateDropdownList(parksList, parks);
+            updateDropdownList(equipmentList, equipment);
+            parksSelected.textContent = 'Select Park';
+            equipmentSelected.textContent = 'Select Equipment';
+            selectedPark = null;
+            selectedEquipment = null;
+            reattachDropdownHandlers('parks-dropdown', v => { selectedPark = v; updateSummary(); });
+            reattachDropdownHandlers('equipments-dropdown', v => { selectedEquipment = v; updateSummary(); });
+            updateSummary();
+        }, true);
+        setupDropdown('parks-dropdown', val => { selectedPark = val; updateSummary(); });
+        setupDropdown('equipments-dropdown', val => { selectedEquipment = val; updateSummary(); });
+        function updateSummary() {
+            bookingSummary.style.display = 'none';
+            bookingWarning.style.display = 'none';
+        }
+        bookBtn.onclick = function () {
+            bookingSummary.style.display = 'none';
+            bookingWarning.style.display = 'none';
+            if (selectedActivity && selectedPark && selectedEquipment) {
+                bookingSummary.style.display = '';
+                bookingSummary.textContent = `Booking created for ${selectedActivity} at ${selectedPark} with ${selectedEquipment}!`;
+            } else {
+                bookingWarning.style.display = '';
+                bookingWarning.textContent = 'Please select activity, park, and equipment to book.';
+            }
+        };
+    </script>
+</body>
+
+</html>
